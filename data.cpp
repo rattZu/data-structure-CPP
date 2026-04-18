@@ -1,27 +1,32 @@
+// Includes para operações de entrada/saída e manipulação de strings
 #include <iostream>
 #include <fstream>
 #include <string>
 
 using namespace std;
 
-#define MAX 100
+#define MAX 100 // capacidade máxima do array de containers
 
 // ================= STRUCT =================
+// Estrutura que representa um container com propriedades básicas
 struct Container {
-    int id;
-    float peso;
-    float volume;
-    string origem;
-    string destino;
+    int id;           // identificador do container
+    float peso;       // peso em toneladas (ou unidade definida)
+    float volume;     // volume em m^3 (ou unidade definida)
+    string origem;    // local de origem
+    string destino;   // local de destino
 };
 
 // ================= VARIAVEIS =================
+// Vetor estático para armazenar os containers cadastrados
 Container containers[MAX];
+// Quantidade atual de containers cadastrados
 int total = 0;
 
 // ================= FUNCOES =================
 
 // Cadastro
+// Lê os dados de um novo container via entrada padrão e adiciona ao vetor
 void cadastrar() {
     if (total >= MAX) {
         cout << "Limite de containers atingido!\n";
@@ -30,6 +35,7 @@ void cadastrar() {
 
     Container c;
 
+    // Leitura dos campos do container
     cout << "\nID: ";
     cin >> c.id;
 
@@ -40,17 +46,19 @@ void cadastrar() {
     cin >> c.volume;
 
     cout << "Origem: ";
-    cin >> c.origem;
+    cin >> c.origem; // strings lidas sem espaço (token)
 
     cout << "Destino: ";
     cin >> c.destino;
 
+    // Armazena no array e incrementa o total
     containers[total++] = c;
 
     cout << "Container cadastrado!\n";
 }
 
 // Listar
+// Exibe todos os containers cadastrados com suas propriedades
 void listar() {
     cout << "\n=== LISTA DE CONTAINERS ===\n";
 
@@ -69,6 +77,7 @@ void listar() {
 }
 
 // Ordenar por peso
+// Implementa um bubble sort simples para ordenar o array pelo campo 'peso'
 void ordenarPeso() {
     for (int i = 0; i < total - 1; i++) {
         for (int j = 0; j < total - i - 1; j++) {
@@ -83,6 +92,7 @@ void ordenarPeso() {
 }
 
 // Ordenar por volume
+// Ordena o array pelo campo 'volume' usando bubble sort
 void ordenarVolume() {
     for (int i = 0; i < total - 1; i++) {
         for (int j = 0; j < total - i - 1; j++) {
@@ -97,6 +107,7 @@ void ordenarVolume() {
 }
 
 // Simulacao
+// Calcula custo e tempo estimados para cada container numa rota de dada distancia
 void calcularRota() {
     int distancia;
     float custo, tempo;
@@ -110,8 +121,9 @@ void calcularRota() {
     }
 
     for (int i = 0; i < total; i++) {
+        // Fórmula simples de exemplo para custo e tempo
         custo = containers[i].peso * 0.5f + distancia * 0.2f;
-        tempo = distancia / 60.0f;
+        tempo = distancia / 60.0f; // assume velocidade média 60 km/h
 
         cout << "\nContainer " << containers[i].id << ":";
         cout << "\nCusto estimado: " << custo;
@@ -120,6 +132,7 @@ void calcularRota() {
 }
 
 // Salvar (2 arquivos)
+// Persiste os dados em um arquivo simples para carregar depois e gera um relatório legível
 void salvar() {
     // Arquivo para o sistema (simples)
     ofstream f("containers.txt");
@@ -130,6 +143,7 @@ void salvar() {
     }
 
     for (int i = 0; i < total; i++) {
+        // Grava em formato: id peso volume origem destino
         f << containers[i].id << " "
             << containers[i].peso << " "
             << containers[i].volume << " "
@@ -165,10 +179,11 @@ void salvar() {
 }
 
 // Carregar (usa arquivo simples)
+// Lê o arquivo gerado por salvar() e preenche o vetor até o limite MAX
 void carregar() {
     ifstream f("containers.txt");
 
-    if (!f) return;
+    if (!f) return; // se não existir o arquivo, apenas retorna
 
     while (f >> containers[total].id
         >> containers[total].peso
@@ -180,7 +195,7 @@ void carregar() {
             total++;
         }
         else {
-            break;
+            break; // evita overflow do array
         }
     }
 
@@ -188,6 +203,7 @@ void carregar() {
 }
 
 // ================= MENU =================
+// Exibe menu principal e chama as funções conforme a escolha do usuário
 void menu() {
     int op;
 
@@ -217,7 +233,9 @@ void menu() {
 
 // ================= MAIN =================
 int main() {
+    // Ao iniciar, tenta carregar dados previamente salvos
     carregar();
+    // Inicia o loop do menu principal
     menu();
     return 0;
 }
