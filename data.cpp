@@ -168,9 +168,9 @@ void menu() {
         cout << "1. Cadastrar container" << endl;
         cout << "2. Listar containers" << endl;
         cout << "3. Ordenar por peso" << endl;
-        cout << "4. Simular Rota (Custos/Tempo)" << endl;
-        cout << "5. Adicionar Porto (Arvore)" << endl;
-        cout << "6. Listar Portos (ABB)" << endl;
+        cout << "4. Simular Rota" << endl;
+        cout << "5. Adicionar Porto" << endl;
+        cout << "6. Listar Portos" << endl;
         cout << "7. Salvar dados" << endl;
         cout << "0. Sair" << endl;
         cout << "Escolha: ";
