@@ -198,3 +198,141 @@ int main() {
     menu();
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+a
+
+
+
+
+// 1. Interface que define a regra de comissão
+interface Commission {
+    double COMMISSION_RATE = 0.10;
+    void setVendas(double sales);
+}
+
+// 2. Classe Abstrata base para todos os trabalhadores
+abstract class Empregado {
+    private String name;
+
+    public Empregado(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void printPay() {
+        System.out.printf("Empregado: %-10s | Salário Total: R$ %.2f%n", name, getPay());
+    }
+
+    // Método abstrato: cada subclasse decide como calcular o ganho
+    public abstract double getPay();
+}
+
+// 3. Classe para quem ganha apenas por comissão
+class PorComissao extends Empregado implements Commission {
+    private double sales;
+
+    public PorComissao(String name) {
+        super(name);
+    }
+
+    @Override
+    public void setVendas(double sales) {
+        this.sales = sales;
+    }
+
+    @Override
+    public double getPay() {
+        return sales * COMMISSION_RATE;
+    }
+}
+
+// 4. Classe para quem ganha por hora trabalhada
+class PorHora extends Empregado {
+    private double valorHora;
+    private int numHora;
+
+    public PorHora(String name, double valorHora, int numHora) {
+        super(name);
+        this.valorHora = valorHora;
+        this.numHora = numHora;
+    }
+
+    @Override
+    public double getPay() {
+        return valorHora * numHora;
+    }
+}
+
+// 5. Classe para quem ganha hora + comissão (Herda de PorHora)
+class PorHoraeComissao extends PorHora implements Commission {
+    private double sales;
+
+    public PorHoraeComissao(String name, double valorHora, int numHora) {
+        super(name, valorHora, numHora);
+    }
+
+    @Override
+    public void setVendas(double sales) {
+        this.sales = sales;
+    }
+
+    @Override
+    public double getPay() {
+        // Salário base (horas) + comissão sobre vendas
+        return super.getPay() + (sales * COMMISSION_RATE);
+    }
+}
+
+// 6. Classe Principal para executar o programa
+public class FolhadePagamento {
+    public static void main(String[] args) {
+        // Vetor de 3 elementos conforme solicitado no exercício
+        Empregado[] funcionarios = new Empregado[3];
+
+        // Instanciando os 3 tipos diferentes de empregados
+        
+        // Empregado 1: Por Comissão
+        PorComissao emp1 = new PorComissao("Alice");
+        emp1.setVendas(10000.0); // 10% de 10.000 = 1.000
+        funcionarios[0] = emp1;
+
+        // Empregado 2: Por Hora
+        PorHora emp2 = new PorHora("Bruno", 100.0, 40); // 100 * 40 = 4.000
+        funcionarios[1] = emp2;
+
+        // Empregado 3: Por Hora e Comissão
+        PorHoraeComissao emp3 = new PorHoraeComissao("Carla", 50.0, 160); // 8.000 fixo
+        emp3.setVendas(20000.0); // + 2.000 comissão = 10.000
+        funcionarios[2] = emp3;
+
+        // Exibição dos resultados percorrendo o vetor
+        System.out.println("========================================");
+        System.out.println("       RELATÓRIO DE PAGAMENTO           ");
+        System.out.println("========================================");
+        
+        for (Empregado e : funcionarios) {
+            e.printPay();
+        }
+        
+        System.out.println("========================================");
+    }
+}
