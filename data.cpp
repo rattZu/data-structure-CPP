@@ -1,221 +1,178 @@
-// Includes para operações de entrada/saída e manipulação de strings
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <iomanip> 
 
 using namespace std;
 
-#define MAX 100 // capacidade máxima do array de containers
+#define MAX 100 
 
-// ================= STRUCT =================
-// Estrutura que representa um container com propriedades básicas
+// ================= STRUCTS =================
 struct Container {
-    int id;           // identificador do container
-    float peso;       // peso em toneladas (ou unidade definida)
-    float volume;     // volume em m^3 (ou unidade definida)
-    string origem;    // local de origem
-    string destino;   // local de destino
+    int id;
+    float peso;
+    float volume;
+    string origem;
+    string destino;
+    Container* anterior = nullptr;
+    Container* proximo = nullptr;
 };
 
-// ================= VARIAVEIS =================
-// Vetor estático para armazenar os containers cadastrados
+struct NodoPorto {
+    int idPorto;
+    float capacidade;
+    NodoPorto* esq = nullptr, * dir = nullptr;
+};
+
+// ================= VARIAVEIS GLOBAIS =================
 Container containers[MAX];
-// Quantidade atual de containers cadastrados
 int total = 0;
 
-// ================= FUNCOES =================
+vector<Container> pilhaReprocessamento;
+vector<Container> filaTransporte;
+NodoPorto* raizPortos = nullptr;
 
-// Cadastro
-// Lê os dados de um novo container via entrada padrão e adiciona ao vetor
+// ================= FUNÇÕES DE ESTRUTURA DE DADOS =================
+
+NodoPorto* inserirPorto(NodoPorto* raiz, int id, float cap) {
+    if (raiz == nullptr) return new NodoPorto{ id, cap };
+    if (cap < raiz->capacidade) raiz->esq = inserirPorto(raiz->esq, id, cap);
+    else raiz->dir = inserirPorto(raiz->dir, id, cap);
+    return raiz;
+}
+
+void exibirPortos(NodoPorto* raiz) {
+    if (raiz != nullptr) {
+        exibirPortos(raiz->esq);
+        cout << "Porto ID: " << raiz->idPorto << " | Capacidade: " << raiz->capacidade << "t" << endl;
+        exibirPortos(raiz->dir);
+    }
+}
+
+void atualizarFluxoED(Container c) {
+    filaTransporte.push_back(c);
+    pilhaReprocessamento.push_back(c);
+}
+
+// ================= FUNÇÕES DE OPERAÇÃO =================
+
 void cadastrar() {
     if (total >= MAX) {
-        cout << "Limite de containers atingido!\n";
+        cout << "Limite atingido!" << endl;
         return;
     }
-
     Container c;
+    cout << "\nID: "; cin >> c.id;
+    cout << "Peso (ton): "; cin >> c.peso;
+    cout << "Volume (m3): "; cin >> c.volume;
+    cout << "Origem: "; cin >> c.origem;
+    cout << "Destino: "; cin >> c.destino;
 
-    // Leitura dos campos do container
-    cout << "\nID: ";
-    cin >> c.id;
-
-    cout << "Peso: ";
-    cin >> c.peso;
-
-    cout << "Volume: ";
-    cin >> c.volume;
-
-    cout << "Origem: ";
-    cin >> c.origem; // strings lidas sem espaço (token)
-
-    cout << "Destino: ";
-    cin >> c.destino;
-
-    // Armazena no array e incrementa o total
     containers[total++] = c;
-
-    cout << "Container cadastrado!\n";
+    atualizarFluxoED(c);
+    cout << "Container cadastrado com sucesso!" << endl;
 }
 
-// Listar
-// Exibe todos os containers cadastrados com suas propriedades
 void listar() {
-    cout << "\n=== LISTA DE CONTAINERS ===\n";
-
+    cout << "\n==================== LISTA DE CONTAINERS ====================" << endl;
     if (total == 0) {
-        cout << "Nenhum container cadastrado.\n";
+        cout << "Nenhum container cadastrado." << endl;
         return;
     }
+
+    cout << left << setw(5) << "ID"
+        << setw(12) << "PESO(t)"
+        << setw(12) << "VOL(m3)"
+        << "ROTA" << endl;
+    cout << "-------------------------------------------------------------" << endl;
 
     for (int i = 0; i < total; i++) {
-        cout << "ID:" << containers[i].id
-            << " | Peso:" << containers[i].peso
-            << " | Volume:" << containers[i].volume
-            << " | " << containers[i].origem
-            << " -> " << containers[i].destino << endl;
+        cout << left << setw(5) << containers[i].id
+            << setw(12) << fixed << setprecision(2) << containers[i].peso
+            << setw(12) << fixed << setprecision(2) << containers[i].volume
+            << containers[i].origem << " -> " << containers[i].destino << endl;
     }
 }
 
-// Ordenar por peso
-// Implementa um bubble sort simples para ordenar o array pelo campo 'peso'
+// NOVO: Função de Simulação de Rota Reintegrada
+void calcularRota() {
+    if (total == 0) {
+        cout << "\n[!] Nao ha containers para simular." << endl;
+        return;
+    }
+
+    float distancia;
+    cout << "\nDistancia total da viagem (km): ";
+    cin >> distancia;
+
+    cout << "\n================ SIMULACAO DE CUSTOS ================" << endl;
+    cout << left << setw(5) << "ID" << setw(12) << "PESO" << setw(15) << "CUSTO (R$)" << "TEMPO (h)" << endl;
+    cout << "-----------------------------------------------------" << endl;
+
+    for (int i = 0; i < total; i++) {
+        // Cálculo: R$ 0.50 por tonelada + R$ 0.20 por km
+        float custo = (containers[i].peso * 0.5f) + (distancia * 0.2f);
+        // Cálculo: Velocidade média de 60km/h
+        float tempo = distancia / 60.0f;
+
+        cout << left << setw(5) << containers[i].id
+            << setw(12) << containers[i].peso
+            << "R$ " << setw(12) << fixed << setprecision(2) << custo
+            << tempo << " horas" << endl;
+    }
+    cout << "=====================================================" << endl;
+}
+
 void ordenarPeso() {
     for (int i = 0; i < total - 1; i++) {
         for (int j = 0; j < total - i - 1; j++) {
             if (containers[j].peso > containers[j + 1].peso) {
-                Container temp = containers[j];
-                containers[j] = containers[j + 1];
-                containers[j + 1] = temp;
+                swap(containers[j], containers[j + 1]);
             }
         }
     }
-    cout << "Ordenado por peso!\n";
+    cout << "Ordenado por peso!" << endl;
 }
 
-// Ordenar por volume
-// Ordena o array pelo campo 'volume' usando bubble sort
-void ordenarVolume() {
-    for (int i = 0; i < total - 1; i++) {
-        for (int j = 0; j < total - i - 1; j++) {
-            if (containers[j].volume > containers[j + 1].volume) {
-                Container temp = containers[j];
-                containers[j] = containers[j + 1];
-                containers[j + 1] = temp;
-            }
-        }
-    }
-    cout << "Ordenado por volume!\n";
-}
-
-// Simulacao
-// Calcula custo e tempo estimados para cada container numa rota de dada distancia
-void calcularRota() {
-    int distancia;
-    float custo, tempo;
-
-    cout << "\nDistancia da rota (km): ";
-    cin >> distancia;
-
-    if (total == 0) {
-        cout << "Nenhum container cadastrado.\n";
-        return;
-    }
-
-    for (int i = 0; i < total; i++) {
-        // Fórmula simples de exemplo para custo e tempo
-        custo = containers[i].peso * 0.5f + distancia * 0.2f;
-        tempo = distancia / 60.0f; // assume velocidade média 60 km/h
-
-        cout << "\nContainer " << containers[i].id << ":";
-        cout << "\nCusto estimado: " << custo;
-        cout << "\nTempo estimado: " << tempo << " horas\n";
-    }
-}
-
-// Salvar (2 arquivos)
-// Persiste os dados em um arquivo simples para carregar depois e gera um relatório legível
 void salvar() {
-    // Arquivo para o sistema (simples)
     ofstream f("containers.txt");
-
-    if (!f) {
-        cout << "Erro ao salvar!\n";
-        return;
-    }
-
+    if (!f) return;
     for (int i = 0; i < total; i++) {
-        // Grava em formato: id peso volume origem destino
-        f << containers[i].id << " "
-            << containers[i].peso << " "
-            << containers[i].volume << " "
-            << containers[i].origem << " "
+        f << containers[i].id << " " << containers[i].peso << " "
+            << containers[i].volume << " " << containers[i].origem << " "
             << containers[i].destino << endl;
     }
-
     f.close();
-
-    // Arquivo bonito (relatorio)
-    ofstream r("relatorio.txt");
-
-    if (!r) {
-        cout << "Erro ao gerar relatorio!\n";
-        return;
-    }
-
-    r << "===== RELATORIO DE CONTAINERS =====\n\n";
-
-    for (int i = 0; i < total; i++) {
-        r << "===== CONTAINER =====\n";
-        r << "ID: " << containers[i].id << "\n";
-        r << "Peso: " << containers[i].peso << "\n";
-        r << "Volume: " << containers[i].volume << "\n";
-        r << "Origem: " << containers[i].origem << "\n";
-        r << "Destino: " << containers[i].destino << "\n";
-        r << "---------------------\n\n";
-    }
-
-    r.close();
-
-    cout << "Dados salvos e relatorio gerado!\n";
+    cout << "Dados salvos!" << endl;
 }
 
-// Carregar (usa arquivo simples)
-// Lê o arquivo gerado por salvar() e preenche o vetor até o limite MAX
 void carregar() {
     ifstream f("containers.txt");
-
-    if (!f) return; // se não existir o arquivo, apenas retorna
-
-    while (f >> containers[total].id
-        >> containers[total].peso
-        >> containers[total].volume
-        >> containers[total].origem
-        >> containers[total].destino) {
-
-        if (total < MAX) {
-            total++;
-        }
-        else {
-            break; // evita overflow do array
-        }
+    if (!f) return;
+    total = 0;
+    while (total < MAX && f >> containers[total].id >> containers[total].peso
+        >> containers[total].volume >> containers[total].origem >> containers[total].destino) {
+        atualizarFluxoED(containers[total]);
+        total++;
     }
-
     f.close();
 }
 
 // ================= MENU =================
-// Exibe menu principal e chama as funções conforme a escolha do usuário
+
 void menu() {
     int op;
-
     do {
-        cout << "\n===== SISTEMA DE ROTEAMENTO =====\n";
-        cout << "1. Cadastrar container\n";
-        cout << "2. Listar containers\n";
-        cout << "3. Ordenar por peso\n";
-        cout << "4. Ordenar por volume\n";
-        cout << "5. Simular rota\n";
-        cout << "6. Salvar dados\n";
-        cout << "0. Sair\n";
+        cout << "\n===== SISTEMA LOGISTICO (ED) =====" << endl;
+        cout << "1. Cadastrar container" << endl;
+        cout << "2. Listar containers" << endl;
+        cout << "3. Ordenar por peso" << endl;
+        cout << "4. Simular Rota (Custos/Tempo)" << endl; // Opção reintegrada
+        cout << "5. Adicionar Porto (Arvore)" << endl;
+        cout << "6. Listar Portos (ABB)" << endl;
+        cout << "7. Salvar dados" << endl;
+        cout << "0. Sair" << endl;
         cout << "Escolha: ";
         cin >> op;
 
@@ -223,19 +180,21 @@ void menu() {
         case 1: cadastrar(); break;
         case 2: listar(); break;
         case 3: ordenarPeso(); break;
-        case 4: ordenarVolume(); break;
-        case 5: calcularRota(); break;
-        case 6: salvar(); break;
+        case 4: calcularRota(); break;
+        case 5:
+            int id; float cap;
+            cout << "ID Porto: "; cin >> id;
+            cout << "Capacidade: "; cin >> cap;
+            raizPortos = inserirPorto(raizPortos, id, cap);
+            break;
+        case 6: exibirPortos(raizPortos); break;
+        case 7: salvar(); break;
         }
-
     } while (op != 0);
 }
 
-// ================= MAIN =================
 int main() {
-    // Ao iniciar, tenta carregar dados previamente salvos
     carregar();
-    // Inicia o loop do menu principal
     menu();
     return 0;
 }
