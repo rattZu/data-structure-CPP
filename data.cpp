@@ -95,7 +95,7 @@ void listar() {
     }
 }
 
-// NOVO: Função de Simulação de Rota Reintegrada
+// Função de Simulação de Rota 
 void calcularRota() {
     if (total == 0) {
         cout << "\n[!] Nao ha containers para simular." << endl;
@@ -168,7 +168,7 @@ void menu() {
         cout << "1. Cadastrar container" << endl;
         cout << "2. Listar containers" << endl;
         cout << "3. Ordenar por peso" << endl;
-        cout << "4. Simular Rota (Custos/Tempo)" << endl; // Opção reintegrada
+        cout << "4. Simular Rota (Custos/Tempo)" << endl;
         cout << "5. Adicionar Porto (Arvore)" << endl;
         cout << "6. Listar Portos (ABB)" << endl;
         cout << "7. Salvar dados" << endl;
