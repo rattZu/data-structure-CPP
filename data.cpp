@@ -67,7 +67,6 @@ void cadastrar() {
     cout << "Peso (ton): "; cin >> c.peso;
     cout << "Volume (m3): "; cin >> c.volume;
 
-    // IMPORTANTE: Limpa o buffer para o getline capturar a string corretamente
     cin.ignore(); 
 
     cout << "Origem: "; 
@@ -139,11 +138,22 @@ void ordenarPeso() {
     cout << "Ordenado por peso!" << endl;
 }
 
+// ========= NOVA FUNÇÃO: ORDENAR POR VOLUME =========
+void ordenarVolume() {
+    for (int i = 0; i < total - 1; i++) {
+        for (int j = 0; j < total - i - 1; j++) {
+            if (containers[j].volume > containers[j + 1].volume) {
+                swap(containers[j], containers[j + 1]);
+            }
+        }
+    }
+    cout << "Ordenado por volume!" << endl;
+}
+
 void salvar() {
     ofstream f("containers.txt");
     if (!f) return;
     for (int i = 0; i < total; i++) {
-        // Salva cada campo em uma linha para evitar problemas com espaços ao ler
         f << containers[i].id << "\n" 
           << containers[i].peso << "\n"
           << containers[i].volume << "\n" 
@@ -161,7 +171,7 @@ void carregar() {
     while (total < MAX && f >> containers[total].id) {
         f >> containers[total].peso;
         f >> containers[total].volume;
-        f.ignore(); // Limpa o caractere de nova linha para o getline funcionar
+        f.ignore(); 
 
         getline(f, containers[total].origem);
         getline(f, containers[total].destino);
@@ -185,6 +195,7 @@ void menu() {
         cout << "5. Adicionar Porto" << endl;
         cout << "6. Listar Portos" << endl;
         cout << "7. Salvar dados" << endl;
+        cout << "8. Ordenar por volume" << endl; // Nova opção
         cout << "0. Sair" << endl;
         cout << "Escolha: ";
         cin >> op;
@@ -202,6 +213,7 @@ void menu() {
             break;
         case 6: exibirPortos(raizPortos); break;
         case 7: salvar(); break;
+        case 8: ordenarVolume(); break; // Chamada da nova função
         }
     } while (op != 0);
 }
