@@ -66,15 +66,8 @@ void cadastrar() {
     cout << "\nID: "; cin >> c.id;
     cout << "Peso (ton): "; cin >> c.peso;
     cout << "Volume (m3): "; cin >> c.volume;
-
-    // IMPORTANTE: Limpa o buffer para o getline capturar a string corretamente
-    cin.ignore(); 
-
-    cout << "Origem: "; 
-    getline(cin, c.origem);
-
-    cout << "Destino: "; 
-    getline(cin, c.destino);
+    cout << "Origem: "; cin >> c.origem;
+    cout << "Destino: "; cin >> c.destino;
 
     containers[total++] = c;
     atualizarFluxoED(c);
@@ -102,6 +95,7 @@ void listar() {
     }
 }
 
+// Função de Simulação de Rota 
 void calcularRota() {
     if (total == 0) {
         cout << "\n[!] Nao ha containers para simular." << endl;
@@ -117,7 +111,9 @@ void calcularRota() {
     cout << "-----------------------------------------------------" << endl;
 
     for (int i = 0; i < total; i++) {
+        // Cálculo: R$ 0.50 por tonelada + R$ 0.20 por km
         float custo = (containers[i].peso * 0.5f) + (distancia * 0.2f);
+        // Cálculo: Velocidade média de 60km/h
         float tempo = distancia / 60.0f;
 
         cout << left << setw(5) << containers[i].id
@@ -143,12 +139,9 @@ void salvar() {
     ofstream f("containers.txt");
     if (!f) return;
     for (int i = 0; i < total; i++) {
-        // Salva cada campo em uma linha para evitar problemas com espaços ao ler
-        f << containers[i].id << "\n" 
-          << containers[i].peso << "\n"
-          << containers[i].volume << "\n" 
-          << containers[i].origem << "\n"
-          << containers[i].destino << "\n";
+        f << containers[i].id << " " << containers[i].peso << " "
+            << containers[i].volume << " " << containers[i].origem << " "
+            << containers[i].destino << endl;
     }
     f.close();
     cout << "Dados salvos!" << endl;
@@ -158,14 +151,8 @@ void carregar() {
     ifstream f("containers.txt");
     if (!f) return;
     total = 0;
-    while (total < MAX && f >> containers[total].id) {
-        f >> containers[total].peso;
-        f >> containers[total].volume;
-        f.ignore(); // Limpa o caractere de nova linha para o getline funcionar
-
-        getline(f, containers[total].origem);
-        getline(f, containers[total].destino);
-
+    while (total < MAX && f >> containers[total].id >> containers[total].peso
+        >> containers[total].volume >> containers[total].origem >> containers[total].destino) {
         atualizarFluxoED(containers[total]);
         total++;
     }
